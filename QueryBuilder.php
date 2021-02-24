@@ -3,12 +3,59 @@
 
 class QueryBuilder
 {
-    protected $pdo;
+    protected PDO $pdo;
+
+    private string $select = '*';
+
 
     public function __construct($pdo)
     {
         $this->pdo = $pdo;
     }
+
+    public function select(string $select):self
+    {
+        $this->select = $select;
+        return $this;
+    }
+
+    public function from(){
+
+    }
+
+    public function where(){
+
+    }
+
+      public function setParameters(){
+
+    }
+
+    public function execute():array
+    {
+        $sql = $this->getSQL();
+        // bind parameters
+        // run sql query
+    }
+
+
+    public function getSQL():string {
+        return '';
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public function selectAll($table)
     {
@@ -27,35 +74,10 @@ class QueryBuilder
         return $statement->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function add($table, $data)
-    {
-        $keys = implode(',', array_keys($data));
-        $tags = ":" . implode(',:', array_keys($data));
-        $sql = "INSERT INTO {$table} ({$keys}) VALUE ({$tags})";
-        $statement = $this->pdo->prepare($sql);
-        $statement->execute($data);
-    }
 
-    public function update($table, $data, $id)
-    {
-        $keys = array_keys($data);
-        $str = '';
-        foreach ($keys as $key) {
-            $str .= $key . '=:' . $key . ',';
-        }
-        $keys = rtrim($str, ',');
-        $data['id'] = $id;
-        $sql = "UPDATE {$table} SET {$keys} WHERE id=:id";
-        $statement = $this->pdo->prepare($sql);
-        $statement->bindValue(':id', $id);
-        $statement->execute($data);
-    }
 
-    public function delete($table, $id)
-    {
-        $sql = "DELETE FROM {$table} WHERE id=:id";
-        $statement = $this->pdo->prepare($sql);
-        $statement->bindParam(':id', $id);
-        $statement->execute();
-    }
+
+
+
+
 }
