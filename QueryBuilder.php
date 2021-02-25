@@ -10,7 +10,6 @@ class QueryBuilder
     private ?array $andWhere = null;
     private ?array $orWhere = null;
     private ?array $params = null;
-    private ?string $limit = null;
     private ?array $orderBy = null;
 
 
@@ -21,7 +20,6 @@ class QueryBuilder
 
     public function select(array $select): self
     {
-//        $strSelect = implode(',', $select);
         $this->select = $select;
         return $this;
     }
@@ -68,10 +66,7 @@ class QueryBuilder
 
     public function execute(): array
     {
-
         $sql = $this->getSQL();
-//        var_dump($sql);
-
         $statement = $this->pdo->prepare($sql);
         if (isset($this->params)) {
             foreach ($this->params as $param => $value) {
@@ -109,11 +104,8 @@ class QueryBuilder
             $sql = rtrim($sql, ', ');
 
         }
-
         return $sql;
-
     }
-
 
     private function isWhere(): bool
     {
