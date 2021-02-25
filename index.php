@@ -1,4 +1,7 @@
 <?php
+/**
+ * @var QueryBuilder $db
+ */
 $db = include 'startBase.php';
 
 
@@ -8,22 +11,21 @@ $db = include 'startBase.php';
 //$db->delete('posts', 12);
 
 $db
-    ->select(['*'])
+    ->select(['title'])
     ->from('posts')
     ->where('distance=:distance')
-//    ->andWhere('title=:title')
-//    ->orWhere('title=:title')
-//
-    ->setParameters([':distance' => '10', ':title'=>'Lida'])
-//    ->limit()
-//    ->orderBy()
+    ->andWhere('title=:title')
+    ->andWhere('title1=:title2')
+    ->orWhere('title=:title')
+    ->setParameters([':title' => 'title'])
+    ->orderBy(['distance' => 'DESC', 'id' => 'ASC'])
 //    ->addOrderBy()
 
 ;
 
 //var_dump($db->getSQL());
-
-var_dump($db->execute());
+//var_dump($db->orderBy);
+var_dump($db->getSQL());
 
 
 

@@ -5,14 +5,13 @@ class QueryBuilder
 {
     protected PDO $pdo;
 
-    private string $select = '*';
+    private array $select;
     private string $from;
-    private ?string $where;
-    private ?string $andWhere;
-    private ?string $orWhere;
-    private ?array $params;
-    private ?string $limit;
-    private ?string $orderBy;
+    private ?array $andWhere = null;
+    private ?array $orWhere = null;
+    private ?array $params = null;
+    private ?string $limit = null;
+    private ?array $orderBy = null;
 
 
     public function __construct($pdo)
@@ -22,8 +21,8 @@ class QueryBuilder
 
     public function select(array $select): self
     {
-        $strSelect = implode(',', $select);
-        $this->select = $strSelect;
+//        $strSelect = implode(',', $select);
+        $this->select = $select;
         return $this;
     }
 
@@ -35,19 +34,18 @@ class QueryBuilder
 
     public function where(string $where): self
     {
-        $this->where = $where;
-        return $this;
+        return $this->andWhere($where);
     }
 
     public function andWhere(string $andWhere): self
     {
-        $this->andWhere = $andWhere;
+        $this->andWhere[] = $andWhere;
         return $this;
     }
 
     public function orWhere(string $orWhere): self
     {
-        $this->orWhere = $orWhere;
+        $this->orWhere[] = $orWhere;
         return $this;
     }
 
@@ -56,9 +54,10 @@ class QueryBuilder
         $this->limit = $limit;
     }
 
-    public function orderBy(string $orderBy): self
+    public function orderBy(array $orderBy): self
     {
         $this->orderBy = $orderBy;
+        return $this;
     }
 
     public function setParameters(array $params): self
@@ -71,62 +70,54 @@ class QueryBuilder
     {
 
         $sql = $this->getSQL();
-        var_dump($sql);
+//        var_dump($sql);
 
         $statement = $this->pdo->prepare($sql);
-        foreach ($this->params as $param => $value) {
-            $statement->bindValue($param, $value);
+        if (isset($this->params)) {
+            foreach ($this->params as $param => $value) {
+                $statement->bindValue($param, $value);
+            }
         }
+
         $statement->execute();
         return $statement->fetchAll(PDO::FETCH_ASSOC);
 
     }
-
 
     public function getSQL(): string
     {
-
-        if (isset($this->where) && isset($this->params)) {
-            if (isset($this->andWhere) && isset($this->orWhere)) {
-                $sql = "SELECT {$this->select} FROM {$this->from} WHERE {$this->where} AND {$this->andWhere} OR {$this->orWhere}";
-                return $sql;
-            } else {
-                if (isset($this->andWhere)) {
-                    $sql = "SELECT {$this->select} FROM {$this->from} WHERE {$this->where} AND {$this->andWhere}";
-                    return $sql;
-                } elseif (isset($this->orWhere)) {
-                    $sql = "SELECT {$this->select} FROM {$this->from} WHERE {$this->where} OR {$this->orWhere}";
-                    return $sql;
-                }
-            }
-                $sql = "SELECT {$this->select} FROM {$this->from} WHERE {$this->where}";
-                return $sql;
-
+        $sql = "SELECT ";
+        if ($this->select) {
+            $select = implode(', ', $this->select);
+            $sql .= $select;
         } else {
-            $sql = "SELECT {$this->select} FROM {$this->from}";
-            return $sql;
+            $sql = "{$this->select}";
         }
+        $sql .= " FROM {$this->from}";
+
+        if ($this->andWhere) {
+            $sql .= ' WHERE (' . implode(' AND ', $this->andWhere) . ')';
+        }
+        if (($this->orWhere) && $this->andWhere) {
+            $sql .= ' OR ' . implode(' OR ', $this->orWhere);
+        }
+        if ($this->orderBy) {
+            $sql .= ' ORDER BY ';
+            foreach ($this->orderBy as $order => $by) {
+                $sql .= $order . ' ' . $by . ', ';
+            }
+            $sql = rtrim($sql, ', ');
+
+        }
+
+        return $sql;
+
     }
 
 
-    public
-    function selectAll($table)
+    private function isWhere(): bool
     {
-        $sql = "SELECT * FROM $table";
-        $statement = $this->pdo->prepare($sql);
-        $statement->execute();
-        return $statement->fetchAll(PDO::FETCH_ASSOC);
+        return $this->andWhere || $this->orWhere;
     }
-
-    public
-    function selectOne($table, $id)
-    {
-        $sql = "SELECT * FROM $table WHERE id=:id";
-        $statement = $this->pdo->prepare($sql);
-        $statement->bindParam(':id', $id);
-        $statement->execute();
-        return $statement->fetch(PDO::FETCH_ASSOC);
-    }
-
 
 }
