@@ -11,10 +11,10 @@ $db
     ->select(['*'])
     ->from('posts')
     ->where('distance=:distance')
-    ->andWhere('title=:title')
-//    ->orWhere()
-//        ':title'=>'Grodno',
-    ->setParameters([':distance' => '105', ':title'=>'Grodno'])
+//    ->andWhere('title=:title')
+//    ->orWhere('title=:title')
+//
+    ->setParameters([':distance' => '10', ':title'=>'Lida'])
 //    ->limit()
 //    ->orderBy()
 //    ->addOrderBy()

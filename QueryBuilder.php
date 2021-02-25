@@ -9,6 +9,7 @@ class QueryBuilder
     private string $from;
     private ?string $where;
     private ?string $andWhere;
+    private ?string $orWhere;
     private ?array $params;
     private ?string $limit;
     private ?string $orderBy;
@@ -44,6 +45,12 @@ class QueryBuilder
         return $this;
     }
 
+    public function orWhere(string $orWhere): self
+    {
+        $this->orWhere = $orWhere;
+        return $this;
+    }
+
     public function limit(string $limit): self
     {
         $this->limit = $limit;
@@ -62,10 +69,12 @@ class QueryBuilder
 
     public function execute(): array
     {
-        $sql = $this->getSQL();
-        $statement = $this->pdo->prepare($sql);
-        foreach ($this->params as $param => $value){
 
+        $sql = $this->getSQL();
+        var_dump($sql);
+
+        $statement = $this->pdo->prepare($sql);
+        foreach ($this->params as $param => $value) {
             $statement->bindValue($param, $value);
         }
         $statement->execute();
@@ -78,13 +87,20 @@ class QueryBuilder
     {
 
         if (isset($this->where) && isset($this->params)) {
-            if (isset($this->andWhere)) {
-                $sql = "SELECT {$this->select} FROM {$this->from} WHERE {$this->where} AND {$this->andWhere}";
+            if (isset($this->andWhere) && isset($this->orWhere)) {
+                $sql = "SELECT {$this->select} FROM {$this->from} WHERE {$this->where} AND {$this->andWhere} OR {$this->orWhere}";
                 return $sql;
             } else {
+                if (isset($this->andWhere)) {
+                    $sql = "SELECT {$this->select} FROM {$this->from} WHERE {$this->where} AND {$this->andWhere}";
+                    return $sql;
+                } elseif (isset($this->orWhere)) {
+                    $sql = "SELECT {$this->select} FROM {$this->from} WHERE {$this->where} OR {$this->orWhere}";
+                    return $sql;
+                }
+            }
                 $sql = "SELECT {$this->select} FROM {$this->from} WHERE {$this->where}";
                 return $sql;
-            }
 
         } else {
             $sql = "SELECT {$this->select} FROM {$this->from}";
@@ -93,7 +109,8 @@ class QueryBuilder
     }
 
 
-    public function selectAll($table)
+    public
+    function selectAll($table)
     {
         $sql = "SELECT * FROM $table";
         $statement = $this->pdo->prepare($sql);
@@ -101,7 +118,8 @@ class QueryBuilder
         return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function selectOne($table, $id)
+    public
+    function selectOne($table, $id)
     {
         $sql = "SELECT * FROM $table WHERE id=:id";
         $statement = $this->pdo->prepare($sql);
