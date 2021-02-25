@@ -8,7 +8,10 @@ class QueryBuilder
     private string $select = '*';
     private string $from;
     private ?string $where;
-    private ?array $param;
+    private ?string $andWhere;
+    private ?array $params;
+    private ?string $limit;
+    private ?string $orderBy;
 
 
     public function __construct($pdo)
@@ -18,7 +21,7 @@ class QueryBuilder
 
     public function select(array $select): self
     {
-        $strSelect = implode(',',$select);
+        $strSelect = implode(',', $select);
         $this->select = $strSelect;
         return $this;
     }
@@ -35,45 +38,59 @@ class QueryBuilder
         return $this;
     }
 
-    public function setParameters(array $param): self
+    public function andWhere(string $andWhere): self
     {
-        $this->param = $param;
+        $this->andWhere = $andWhere;
+        return $this;
+    }
+
+    public function limit(string $limit): self
+    {
+        $this->limit = $limit;
+    }
+
+    public function orderBy(string $orderBy): self
+    {
+        $this->orderBy = $orderBy;
+    }
+
+    public function setParameters(array $params): self
+    {
+        $this->params = $params;
         return $this;
     }
 
     public function execute(): array
     {
         $sql = $this->getSQL();
-
         $statement = $this->pdo->prepare($sql);
+        foreach ($this->params as $param => $value){
 
-        $statement->bindParam(':id', $this->param['id'] );
+            $statement->bindValue($param, $value);
+        }
         $statement->execute();
         return $statement->fetchAll(PDO::FETCH_ASSOC);
-        // bind parameters
-        // run sql query
+
     }
 
 
     public function getSQL(): string
     {
-     //@TODO create paramets from array
 
-        if (isset($this->where) && isset($this->param)){
-            $sql = "SELECT {$this->select} FROM {$this->from} WHERE {$this->where}";
-            return $sql;
-        }
-        else {
+        if (isset($this->where) && isset($this->params)) {
+            if (isset($this->andWhere)) {
+                $sql = "SELECT {$this->select} FROM {$this->from} WHERE {$this->where} AND {$this->andWhere}";
+                return $sql;
+            } else {
+                $sql = "SELECT {$this->select} FROM {$this->from} WHERE {$this->where}";
+                return $sql;
+            }
+
+        } else {
             $sql = "SELECT {$this->select} FROM {$this->from}";
             return $sql;
         }
     }
-
-
-
-
-
-
 
 
     public function selectAll($table)

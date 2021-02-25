@@ -8,19 +8,21 @@ $db = include 'startBase.php';
 //$db->delete('posts', 12);
 
 $db
-    ->select(['title'])
+    ->select(['*'])
     ->from('posts')
-    ->where('id=:id')
-    ->andWhere()
-    ->orWhere()
-    ->setParameters(['id'=>'15'])
-    ->limit()
-    ->orderBY()
-    ->addOrderBY()
+    ->where('distance=:distance')
+    ->andWhere('title=:title')
+//    ->orWhere()
+//        ':title'=>'Grodno',
+    ->setParameters([':distance' => '105', ':title'=>'Grodno'])
+//    ->limit()
+//    ->orderBy()
+//    ->addOrderBy()
 
 ;
 
 //var_dump($db->getSQL());
+
 var_dump($db->execute());
 
 
